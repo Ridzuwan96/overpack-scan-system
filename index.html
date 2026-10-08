@@ -1439,10 +1439,6 @@ function buildDNSummary() {
 
         let rowDate =
         parseScanDate(row.cells[0].innerText);
-    console.log(
-    row.cells[0].innerText,
-    rowDate
-);
 
         if(fromDate){
 
@@ -2049,38 +2045,41 @@ function exportVipExcel(){
 
     let rowDate =
     parseScanDate(row.cells[0].innerText);
-        console.log(
-    row.cells[0].innerText,
-    rowDate
-);
+   
+       if(fromDate){
 
-        if(fromDate){
+    let p = fromDate.split("-");
 
-            let from =
-            new Date(fromDate);
+    let from = new Date(
+        parseInt(p[0]),
+        parseInt(p[1]) - 1,
+        parseInt(p[2])
+    );
 
-            if(rowDate < from){
+    if(rowDate < from){
 
-                row.remove();
-                return;
+        row.remove();
+        return;
 
-            }
+    }
 
-        }
+}
+if(toDate){
 
-        if(toDate){
+    let p = toDate.split("-");
 
-            let to =
-            new Date(toDate);
+    let to = new Date(
+        parseInt(p[0]),
+        parseInt(p[1]) - 1,
+        parseInt(p[2]),
+        23,59,59,999
+    );
 
-            to.setHours(
-                23,59,59,999
-            );
+    if(rowDate > to){
 
-            if(rowDate > to){
+        row.remove();
+        return;
 
-                row.remove();
-                return;
 
             }
 
@@ -2210,38 +2209,42 @@ function exportAliExcel(){
 
     let rowDate =
     parseScanDate(row.cells[0].innerText);
-        console.log(
-    row.cells[0].innerText,
-    rowDate
-);
 
-        if(fromDate){
+       if(fromDate){
 
-            let from =
-            new Date(fromDate);
+    let p = fromDate.split("-");
 
-            if(rowDate < from){
+    let from = new Date(
+        parseInt(p[0]),
+        parseInt(p[1]) - 1,
+        parseInt(p[2])
+    );
 
-                row.remove();
-                return;
+    if(rowDate < from){
 
-            }
+        row.remove();
+        return;
 
-        }
+    }
 
-        if(toDate){
+}
 
-            let to =
-            new Date(toDate);
+       if(toDate){
 
-            to.setHours(
-                23,59,59,999
-            );
+    let p = toDate.split("-");
 
-            if(rowDate > to){
+    let to = new Date(
+        parseInt(p[0]),
+        parseInt(p[1]) - 1,
+        parseInt(p[2]),
+        23,59,59,999
+    );
 
-                row.remove();
-                return;
+    if(rowDate > to){
+
+        row.remove();
+        return;
+
 
             }
 
