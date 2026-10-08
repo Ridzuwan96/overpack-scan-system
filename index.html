@@ -1446,30 +1446,37 @@ function buildDNSummary() {
 
         if(fromDate){
 
-            let from =
-            new Date(fromDate);
+    let p = fromDate.split("-");
 
-            if(rowDate < from){
-                return;
-            }
+    let from = new Date(
+        parseInt(p[0]),
+        parseInt(p[1]) - 1,
+        parseInt(p[2])
+    );
 
-        }
+    if(rowDate < from){
+        return;
+    }
 
-        if(toDate){
+}
+    
+      if(toDate){
 
-            let to =
-            new Date(toDate);
+    let p = toDate.split("-");
 
-            to.setHours(
-                23,59,59,999
-            );
+    let to = new Date(
+        parseInt(p[0]),
+        parseInt(p[1]) - 1,
+        parseInt(p[2]),
+        23,59,59,999
+    );
 
-            if(rowDate > to){
-                return;
-            }
+    if(rowDate > to){
+        return;
+    }
 
-        }
-
+}
+    
 if(!dnMap[dn]){
 
     dnMap[dn] = {
