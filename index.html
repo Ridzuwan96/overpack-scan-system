@@ -1361,19 +1361,33 @@ function parseScanDate(dateStr){
 
     if(!dateStr) return null;
 
-    dateStr = dateStr.split(",")[0];
+    // Buang masa
+    let dateOnly = dateStr.split(",")[0].trim();
 
-    let parts = dateStr.split("/");
+    let parts = dateOnly.split("/");
 
-    if(parts.length !== 3) return null;
+    if(parts.length !== 3){
+        return null;
+    }
 
-    let day = parseInt(parts[0]);
-    let month = parseInt(parts[1]) - 1;
-    let year = parseInt(parts[2]);
+    // Format lama
+    if(dateStr.includes("AM") || dateStr.includes("PM")){
 
-    return new Date(year, month, day);
+        let month = parseInt(parts[0],10);
+        let day   = parseInt(parts[1],10);
+        let year  = parseInt(parts[2],10);
 
+        return new Date(year, month - 1, day);
+    }
+
+    // Format baru en-GB
+    let day   = parseInt(parts[0],10);
+    let month = parseInt(parts[1],10);
+    let year  = parseInt(parts[2],10);
+
+    return new Date(year, month - 1, day);
 }
+
 
 function buildDNSummary() {
 
@@ -1425,6 +1439,10 @@ function buildDNSummary() {
 
         let rowDate =
         parseScanDate(row.cells[0].innerText);
+    console.log(
+    row.cells[0].innerText,
+    rowDate
+);
 
         if(fromDate){
 
@@ -2024,6 +2042,10 @@ function exportVipExcel(){
 
     let rowDate =
     parseScanDate(row.cells[0].innerText);
+        console.log(
+    row.cells[0].innerText,
+    rowDate
+);
 
         if(fromDate){
 
@@ -2181,6 +2203,10 @@ function exportAliExcel(){
 
     let rowDate =
     parseScanDate(row.cells[0].innerText);
+        console.log(
+    row.cells[0].innerText,
+    rowDate
+);
 
         if(fromDate){
 
