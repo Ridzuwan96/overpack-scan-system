@@ -1357,7 +1357,23 @@ row.setAttribute(
     }
 
 }
+function parseScanDate(dateStr){
 
+    if(!dateStr) return null;
+
+    dateStr = dateStr.split(",")[0];
+
+    let parts = dateStr.split("/");
+
+    if(parts.length !== 3) return null;
+
+    let day = parseInt(parts[0]);
+    let month = parseInt(parts[1]) - 1;
+    let year = parseInt(parts[2]);
+
+    return new Date(year, month, day);
+
+}
 
 function buildDNSummary() {
 
@@ -1408,7 +1424,7 @@ function buildDNSummary() {
         document.getElementById("toDate")?.value;
 
         let rowDate =
-        new Date(row.cells[0].innerText);
+        parseScanDate(row.cells[0].innerText);
 
         if(fromDate){
 
@@ -2006,8 +2022,8 @@ function exportVipExcel(){
 
     Array.from(tbody.rows).forEach(row => {
 
-        let rowDate =
-        new Date(row.cells[0].innerText);
+    let rowDate =
+    parseScanDate(row.cells[0].innerText);
 
         if(fromDate){
 
@@ -2163,8 +2179,8 @@ function exportAliExcel(){
 
     Array.from(tbody.rows).forEach(row => {
 
-        let rowDate =
-        new Date(row.cells[0].innerText);
+    let rowDate =
+    parseScanDate(row.cells[0].innerText);
 
         if(fromDate){
 
@@ -2729,6 +2745,8 @@ window.orderBy = orderBy;
 window.onSnapshot = onSnapshot;
 window.deleteDoc = deleteDoc;
 window.doc = doc;
+window.updateDoc = updateDoc;
+
 
 console.log("Firebase Connected");
 
