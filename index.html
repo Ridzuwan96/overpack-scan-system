@@ -146,6 +146,37 @@ th,td{
     width:220px;
     margin-left:10px;
 }
+.deliveryPanel{
+
+    width:360px;
+
+    background:white;
+
+    border-radius:10px;
+
+    padding:15px;
+
+    box-shadow:
+    0 2px 8px rgba(0,0,0,0.15);
+
+}
+
+.pendingItem{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:8px 0;
+
+    font-size:14px;
+
+    border-bottom:1px solid #eee;
+
+}
+
 .actionButtons{
 
     margin-top:20px;
@@ -365,6 +396,25 @@ th,td{
 
 }
 
+.actionTitle{
+
+    color:#D40511;
+
+    font-weight:bold;
+
+}
+
+
+.pendingItem{
+
+    padding:8px 0;
+
+    font-size:14px;
+
+    border-bottom:1px solid #eee;
+
+}
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
@@ -514,10 +564,15 @@ EXPORT ALIBABA/GOOGLE
         <div class="rightPanel" id="vipBox">
 
             IBOX<br>
-            <input id="vipIbox"><br><br>
+            <input
+            id="vipIbox"
+            maxlength="9">
+            <br><br>
 
             CP LABEL<br>
-            <input id="vipCp">
+            <input
+            id="vipCp"
+            maxlength="9">
 
         </div>
 
@@ -526,13 +581,22 @@ EXPORT ALIBABA/GOOGLE
         <div class="rightPanel" id="aliBox" style="display:none;">
 
             IBOX<br>
-            <input id="aliIbox"><br><br>
+            <input
+            id="aliIbox"
+            maxlength="9">
+            <br><br>
 
             IBOX CP<br>
-            <input id="aliIboxCp"><br><br>
+            <input
+            id="aliIboxCp"
+            maxlength="10">
+            <br><br>
 
             CP<br>
-            <input id="aliCp">
+            <input
+            id="aliCp"
+        maxlength="9">
+
 
         </div>
 <div class="summaryPanel">
@@ -580,8 +644,70 @@ EXPORT ALIBABA/GOOGLE
     </div>
 
 </div>
+        <div class="deliveryPanel">
 
+    <h3>📦 DELIVERY PLAN</h3>
 
+<button
+    id="loadReportBtn"
+    onclick="
+    document.getElementById(
+        'planFile'
+    ).click();
+">
+    📂 LOAD REPORT
+</button>
+<hr>
+
+<h4
+    id="completedTitle"
+    style="cursor:pointer;">
+
+    ▶ COMPLETED (0)
+
+</h4>
+
+<div
+    id="completedList"
+    style="display:none;">
+
+</div>
+
+    <input
+    type="file"
+    id="planFile"
+    accept=".xlsx,.xls"
+    style="display:none;"
+>
+
+    <hr>
+
+<h4
+    class="actionTitle"
+    id="actionRequiredTitle">
+
+    🚨 ACTION REQUIRED 
+
+</h4>
+<div id="pendingList"></div>
+
+<hr>
+
+<h4
+    id="cancelledTitle"
+    style="cursor:pointer;">
+
+    ▶ CANCELLED (0)
+
+</h4>
+
+<div
+    id="cancelledList"
+    style="display:none;">
+
+</div>
+
+</div> <!-- deliveryPanel tutup sini -->
 
 </div> <!-- tutup scanLayout -->
 
@@ -861,6 +987,8 @@ DN Detail
 
 let selectedDN = "";
 
+let plannedDelivery = [];
+
 let currentUser = "";
 let currentShift = "";
 async function loginUser(){
@@ -986,11 +1114,17 @@ function changeType(){
 
 async function saveData(){
 
-    let type = document.getElementById("scanType").value;
-    let customer = document.getElementById("customer").value;
-    let dn = document.getElementById("dn").value;
+    let type =
+    document.getElementById("scanType").value;
 
-    let today = new Date().toLocaleDateString('en-GB');
+    let customer =
+    document.getElementById("customer").value;
+
+    let dn =
+    document.getElementById("dn").value;
+
+    let today =
+    new Date().toLocaleDateString('en-GB');
 
     let resultText = "OK";
     let resultClass = "ok";
@@ -1001,13 +1135,24 @@ async function saveData(){
 
     if(type === "vip"){
 
-        let ibox = document.getElementById("vipIbox").value.trim();
-        let cp = document.getElementById("vipCp").value.trim();
+        let ibox =
+        document.getElementById("vipIbox")
+        .value.trim();
 
-        if(ibox === "" || cp === ""){
+        let cp =
+        document.getElementById("vipCp")
+        .value.trim();
+
+        if(
+            ibox === "" ||
+            cp === ""
+        ){
 
             playErrorSound();
-            alert("Please complete all fields");
+            alert(
+                "Please complete all fields"
+            );
+
             return;
 
         }
@@ -1136,19 +1281,22 @@ row.setAttribute(
     }
 
     // =========================
-    // ALI BABA
+    // ALI / GOOGLE
     // =========================
 
     else{
 
         let ibox =
-        document.getElementById("aliIbox").value.trim();
+        document.getElementById("aliIbox")
+        .value.trim();
 
         let iboxcp =
-        document.getElementById("aliIboxCp").value.trim();
+        document.getElementById("aliIboxCp")
+        .value.trim();
 
         let cp =
-        document.getElementById("aliCp").value.trim();
+        document.getElementById("aliCp")
+        .value.trim();
 
         if(
             ibox === "" ||
@@ -1157,17 +1305,24 @@ row.setAttribute(
         ){
 
             playErrorSound();
-            alert("Please complete all fields");
+            alert(
+                "Please complete all fields"
+            );
+
             return;
 
         }
 
+        // Auto tambah C jika scanner tak detect
+
         if(
-            !iboxcp.toUpperCase()
+            !iboxcp
+            .toUpperCase()
             .startsWith("C")
         ){
 
-            iboxcp = "C" + iboxcp;
+            iboxcp =
+            "C" + iboxcp;
 
             document.getElementById(
                 "aliIboxCp"
@@ -1183,15 +1338,7 @@ row.setAttribute(
 
         let invalidMatch = false;
 
-        if(
-            ibox.toUpperCase() ===
-            iboxcp.toUpperCase()
-        ){
-
-            invalidMatch = true;
-
-        }
-
+        
         if(
             ibox.toUpperCase() ===
             cp.toUpperCase()
@@ -1839,6 +1986,28 @@ function doneDN(){
 
     let currentTable;
 
+    let completedDN =
+document.getElementById("dn").value.trim();
+
+plannedDelivery.forEach(async item => {
+
+    if(item.dn === completedDN){
+
+        item.status = "COMPLETE";
+
+        await window.setDoc(
+            window.doc(
+                db,
+                "plannedDelivery",
+                completedDN
+            ),
+            item
+        );
+
+    }
+
+});
+
     if(type==="vip"){
 
         currentTable =
@@ -1861,10 +2030,11 @@ function doneDN(){
     document.getElementById("dn").value="";
     document.getElementById("dn").focus();
 
-    alert("DN Completed");
+window.renderDeliveryPlan();
 
-    updateSummary();
-    showHistory();
+updateSummary();
+
+alert("DN Completed");
 
 }
 
@@ -2689,6 +2859,73 @@ if(savedName && savedShift){
 
 }
 
+function cancelDelivery(dn){
+
+    if(
+        !confirm(
+            "Cancel Delivery?\n\n" +
+            "DN : " + dn
+        )
+    ){
+        return;
+    }
+
+    plannedDelivery.forEach(async item => {
+
+        if(item.dn === dn){
+
+            item.status = "CANCELLED";
+
+            await window.setDoc(
+                window.doc(
+                    db,
+                    "plannedDelivery",
+                    dn
+                ),
+                item
+            );
+
+        }
+
+    });
+
+    window.renderDeliveryPlan();
+
+}
+function restoreDelivery(dn){
+
+    if(
+        !confirm(
+            "Restore Delivery?\n\n" +
+            "DN : " + dn
+        )
+    ){
+        return;
+    }
+
+    plannedDelivery.forEach(async item => {
+
+        if(item.dn === dn){
+
+            item.status = "PENDING";
+
+            await window.setDoc(
+                window.doc(
+                    db,
+                    "plannedDelivery",
+                    dn
+                ),
+                item
+            );
+
+        }
+
+    });
+
+    window.renderDeliveryPlan();
+
+}
+
 function logoutUser(){
 
     if(!confirm(
@@ -2722,6 +2959,8 @@ window.onload = async function(){
 
     await loadFirebaseHistory();
 
+await window.loadPlannedDelivery();
+
     startRealtimeHistory();
 
     changeType();
@@ -2729,6 +2968,7 @@ window.onload = async function(){
     updateSummary();
 
 }
+
 
 </script>
 <script type="module">
@@ -2749,7 +2989,8 @@ import {
   onSnapshot,
   deleteDoc,
   doc,
-    updateDoc
+    updateDoc,
+    setDoc
 }
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
@@ -2782,11 +3023,428 @@ window.onSnapshot = onSnapshot;
 window.deleteDoc = deleteDoc;
 window.doc = doc;
 window.updateDoc = updateDoc;
+window.setDoc = setDoc;
+
 
 
 console.log("Firebase Connected");
 
 
-</script>
 
+function uploadPlan(event){
+
+    const file =
+    event.target.files[0];
+
+    if(!file){
+        return;
+    }
+
+    const reader =
+    new FileReader();
+
+    reader.onload =
+    function(e){
+
+        const data =
+        new Uint8Array(
+            e.target.result
+        );
+
+        const workbook =
+        XLSX.read(
+            data,
+            {
+                type:"array"
+            }
+        );
+
+        const sheet =
+        workbook.Sheets[
+            workbook.SheetNames[0]
+        ];
+
+const rows =
+XLSX.utils
+.sheet_to_json(sheet);
+
+let existingMap = {};
+
+plannedDelivery.forEach(item => {
+
+    existingMap[item.dn] = item;
+
+});
+
+const allowedCustomers = [
+    "AMAZON",
+    "BYTEDANCE",
+    "ALIBABA",
+    "GOOGLE"
+];
+
+rows.forEach(row => {
+
+    let customer =
+    String(
+        row["Name of sold-to party"] || ""
+    ).toUpperCase();
+
+    let validCustomer =
+    allowedCustomers.some(name =>
+        customer.includes(name)
+    );
+
+    if(!validCustomer){
+        return;
+    }
+
+let excelDate =
+row["Transptn Plang Date"];
+
+let jsDate =
+new Date(
+    (excelDate - 25569) *
+    86400 * 1000
+);
+
+let planDate =
+jsDate.getFullYear() + "-" +
+String(jsDate.getMonth()+1)
+.padStart(2,"0") + "-" +
+String(jsDate.getDate())
+.padStart(2,"0");
+
+let dn =
+String(
+    row["Delivery"] || ""
+);
+
+let existing =
+existingMap[dn];
+
+let currentStatus = "PENDING";
+
+if(existing){
+
+    currentStatus =
+    existing.status;
+
+}
+
+if(existing){
+
+    existing.planDate =
+    planDate;
+
+    existing.customer =
+    row["Name of sold-to party"];
+
+}
+else{
+
+    plannedDelivery.push({
+
+        dn: dn,
+
+        customer:
+        row["Name of sold-to party"],
+
+        planDate:
+        planDate,
+
+        status:
+        currentStatus
+    });
+
+}
+
+window.setDoc(
+    window.doc(
+        db,
+        "plannedDelivery",
+        dn
+    ),
+    {
+
+        dn: dn,
+
+        customer:
+        row["Name of sold-to party"],
+
+        planDate:
+        planDate,
+
+        status:
+        currentStatus
+
+    }
+
+);
+
+});
+
+console.log(plannedDelivery);
+
+alert(
+    plannedDelivery.length +
+    " Delivery Loaded"
+);
+renderDeliveryPlan();
+
+
+    };
+
+reader.readAsArrayBuffer(file);
+
+}
+
+window.renderDeliveryPlan = function(){
+
+    let pendingList =
+    document.getElementById("pendingList");
+
+let completedList =
+document.getElementById(
+    "completedList"
+);
+
+let cancelledList =
+document.getElementById(
+    "cancelledList"
+);
+
+let today =
+new Date().toISOString().split("T")[0];
+    pendingList.innerHTML = "";
+    completedList.innerHTML = "";
+    cancelledList.innerHTML = "";
+
+    plannedDelivery
+    .sort((a,b)=>
+        new Date(a.planDate) -
+        new Date(b.planDate)
+    )
+.forEach(item => {
+
+    let planDate =
+    new Date(item.planDate);
+
+    let displayDate =
+    String(planDate.getDate())
+    .padStart(2,"0")
+    + "/"
+    +
+    String(planDate.getMonth()+1)
+    .padStart(2,"0");
+
+    let shortCustomer =
+    item.customer
+    .replace(" CLOUD (SINGAPORE)", "")
+    .replace(" Pte. Ltd.", "")
+    .replace(" LLC", "")
+    .replace(" DATA SERVICES IRELAND LIMITE","")
+    .replace(" DATA SERVICES, INC.","")
+    .replace(" ASIA-PACIFIC","")
+    .trim();
+
+if(item.status === "CANCELLED"){
+
+    cancelledList.innerHTML += `
+
+    <div class="pendingItem">
+
+        🚫 ${displayDate}
+        |
+        ${shortCustomer}
+        |
+        ${item.dn}
+
+<span
+    title="Restore Delivery"
+    style="
+        float:right;
+        cursor:pointer;
+        color:green;
+        font-weight:bold;
+    "
+    onclick="
+        restoreDelivery(
+            '${item.dn}'
+        )
+    ">
+    ↩
+</span>
+
+    </div>
+
+    `;
+
+    return;
+}
+
+if(
+    item.status === "COMPLETE"
+    &&
+    item.planDate === today
+){
+
+    completedList.innerHTML += `
+
+    <div class="pendingItem">
+
+        ✅ ${displayDate}
+        |
+        ${shortCustomer}
+        |
+        ${item.dn}
+
+    </div>
+
+    `;
+
+    return;
+}
+
+let html = `
+
+<div class="pendingItem">
+
+    ${displayDate}
+    |
+    ${shortCustomer}
+    |
+    ${item.dn}
+
+<span
+    title="Cancel Delivery"
+    style="
+        float:right;
+        cursor:pointer;
+    "
+    onclick="
+        cancelDelivery(
+            '${item.dn}'
+        )
+    ">
+    🚫
+</span>
+
+</div>
+
+`;
+
+    // code pending asal
+
+
+pendingList.innerHTML += html;
+
+    });
+
+let pendingCount =
+plannedDelivery.filter(
+    x => x.status === "PENDING"
+).length;
+
+let completedCount =
+plannedDelivery.filter(
+    x => x.status === "COMPLETE"
+).length;
+
+let cancelledCount =
+plannedDelivery.filter(
+    x => x.status === "CANCELLED"
+).length;
+
+if(completedCount === 0){
+
+    document.getElementById(
+        "completedTitle"
+    ).style.display = "none";
+
+    document.getElementById(
+        "completedList"
+    ).style.display = "none";
+
+}
+
+
+else{
+
+    document.getElementById(
+        "completedTitle"
+    ).style.display = "block";
+
+    document.getElementById(
+        "completedList"
+    ).style.display = "none";
+
+}
+
+if(cancelledCount === 0){
+
+    document.getElementById(
+        "cancelledTitle"
+    ).style.display = "none";
+
+    document.getElementById(
+        "cancelledList"
+    ).style.display = "none";
+
+}
+else{
+
+    document.getElementById(
+        "cancelledTitle"
+    ).style.display = "block";
+
+}
+
+document.getElementById(
+    "actionRequiredTitle"
+).innerHTML =
+"🚨 ACTION REQUIRED (" +
+pendingCount +
+")";
+
+document.getElementById(
+    "completedTitle"
+).innerHTML =
+"▶ COMPLETED (" +
+completedCount +
+")";
+document.getElementById(
+    "cancelledTitle"
+).innerHTML =
+"▶ CANCELLED (" +
+cancelledCount +
+")";
+
+}
+
+window.loadPlannedDelivery = async function(){
+
+    plannedDelivery = [];
+
+    const snapshot =
+    await getDocs(
+        collection(
+            db,
+            "plannedDelivery"
+        )
+    );
+
+    snapshot.forEach(doc => {
+
+        plannedDelivery.push(
+            doc.data()
+        );
+
+    });
+
+    renderDeliveryPlan();
+
+}
+
+</script>
 
