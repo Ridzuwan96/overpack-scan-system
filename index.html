@@ -454,29 +454,35 @@ margin-top:5px;">
 
 </div>
 
-<button onclick="showScan()">
-START SCAN
-</button>
+<div id="topMenu" style="display:none;">
 
-<button onclick="showHistory()">
-HISTORY
-</button>
+    <button onclick="showScan()">
+        START SCAN
+    </button>
 
-<button
-    class="logoutBtn"
-    onclick="logoutUser()">
-    LOG OUT
-</button>
-<button onclick="exportVipExcel()">
-EXPORT BYTEDANCE/AMAZON
-</button>
-<button onclick="exportAliExcel()">
-EXPORT ALIBABA/GOOGLE
-</button>
-<button onclick="exportAuditLog()">
-📋 EXPORT AUDIT LOG
-</button>
+    <button onclick="showHistory()">
+        HISTORY
+    </button>
 
+    <button
+        class="logoutBtn"
+        onclick="logoutUser()">
+        LOG OUT
+    </button>
+
+    <button onclick="exportVipExcel()">
+        EXPORT BYTEDANCE/AMAZON
+    </button>
+
+    <button onclick="exportAliExcel()">
+        EXPORT ALIBABA/GOOGLE
+    </button>
+
+    <button onclick="exportAuditLog()">
+        📋 EXPORT AUDIT LOG
+    </button>
+
+</div>
 
 <br><br>
 
@@ -1065,7 +1071,9 @@ localStorage.setItem(
     document.getElementById(
         "scanPage"
     ).style.display = "block";
-
+    document.getElementById(
+    "topMenu"
+).style.display = "block";
 }
 
 function changeType(){
@@ -2835,28 +2843,6 @@ function playErrorSound(){
 
 }
 
-let savedName =
-localStorage.getItem(
-    "operatorName"
-);
-
-let savedShift =
-localStorage.getItem(
-    "operatorShift"
-);
-
-if(savedName && savedShift){
-
-    localStorage.removeItem(
-        "operatorName"
-    );
-
-    localStorage.removeItem(
-        "operatorShift"
-    );
-
-}
-
 function cancelDelivery(dn){
 
     if(
@@ -2949,6 +2935,42 @@ function logoutUser(){
 
 
 window.onload = async function(){
+
+    let savedName =
+localStorage.getItem(
+    "operatorName"
+);
+
+let savedShift =
+localStorage.getItem(
+    "operatorShift"
+);
+
+if(savedName && savedShift){
+
+    currentUser = savedName;
+    currentShift = savedShift;
+
+    document.getElementById(
+        "userInfo"
+    ).innerHTML =
+    "User : " +
+    currentUser +
+    " | Shift : " +
+    currentShift;
+
+    document.getElementById(
+        "loginPage"
+    ).style.display = "none";
+
+    document.getElementById(
+        "scanPage"
+    ).style.display = "block";
+
+    document.getElementById(
+        "topMenu"
+    ).style.display = "block";
+}
 
     selectedDN = "";
 
