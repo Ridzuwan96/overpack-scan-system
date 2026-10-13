@@ -3035,7 +3035,6 @@ function uploadPlan(event){
 
     const file =
     event.target.files[0];
-
     if(!file){
         return;
     }
@@ -3101,6 +3100,10 @@ rows.forEach(row => {
 
 let excelDate =
 row["Transptn Plang Date"];
+console.log(
+    "DATE:",
+    row["Transptn Plang Date"]
+);
 
 let jsDate =
 new Date(
@@ -3283,27 +3286,28 @@ if(item.status === "CANCELLED"){
     return;
 }
 
-if(
-    item.status === "COMPLETE"
-    &&
-    item.planDate === today
-){
+if(item.status === "COMPLETE"){
 
-    completedList.innerHTML += `
+    if(item.planDate >= today){
 
-    <div class="pendingItem">
+        completedList.innerHTML += `
 
-        ✅ ${displayDate}
-        |
-        ${shortCustomer}
-        |
-        ${item.dn}
+        <div class="pendingItem">
 
-    </div>
+            ✅ ${displayDate}
+            |
+            ${shortCustomer}
+            |
+            ${item.dn}
 
-    `;
+        </div>
+
+        `;
+
+    }
 
     return;
+
 }
 
 let html = `
@@ -3421,6 +3425,54 @@ cancelledCount +
 ")";
 
 }
+
+document
+.getElementById("planFile")
+.addEventListener(
+    "change",
+    uploadPlan
+);
+
+document
+.getElementById("completedTitle")
+.onclick = function(){
+
+    let box =
+    document.getElementById(
+        "completedList"
+    );
+
+    if(box.style.display === "none"){
+
+        box.style.display = "block";
+
+    }else{
+
+        box.style.display = "none";
+
+    }
+
+};
+document
+.getElementById("cancelledTitle")
+.onclick = function(){
+
+    let box =
+    document.getElementById(
+        "cancelledList"
+    );
+
+    if(box.style.display === "none"){
+
+        box.style.display = "block";
+
+    }else{
+
+        box.style.display = "none";
+
+    }
+
+};
 
 window.loadPlannedDelivery = async function(){
 
