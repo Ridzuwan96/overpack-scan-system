@@ -561,7 +561,13 @@ margin-top:5px;">
 <br><br>
             <div style="display:none;"></div>
             DN<br>
-            <input id="dn">
+<input
+    id="dn"
+    oninput="
+        this.value =
+        this.value.replace(/^0+/,'');
+    "
+>
 
         </div>
 
@@ -1128,8 +1134,11 @@ async function saveData(){
     let customer =
     document.getElementById("customer").value;
 
-    let dn =
-    document.getElementById("dn").value;
+let dn =
+document.getElementById("dn")
+.value
+.trim()
+.replace(/^0+/, "");
 
     let today =
     new Date().toLocaleDateString('en-GB');
@@ -1992,8 +2001,11 @@ function doneDN(){
 
     let currentTable;
 
-    let completedDN =
-document.getElementById("dn").value.trim();
+let completedDN =
+document.getElementById("dn")
+.value
+.trim()
+.replace(/^0+/, "");
 
 plannedDelivery.forEach(async item => {
 
@@ -3141,7 +3153,9 @@ String(jsDate.getDate())
 let dn =
 String(
     row["Delivery"] || ""
-);
+)
+.trim()
+.replace(/^0+/, "");
 
 let existing =
 existingMap[dn];
@@ -3519,4 +3533,3 @@ window.loadPlannedDelivery = async function(){
 }
 
 </script>
-
