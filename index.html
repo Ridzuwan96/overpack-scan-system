@@ -673,7 +673,8 @@ margin-top:5px;">
 
 <h4
     id="completedTitle"
-    style="cursor:pointer;">
+    style="cursor:pointer;"
+    onclick="toggleSection('completedTitle','completedList')">
 
     ▶ COMPLETED (0)
 
@@ -696,18 +697,23 @@ margin-top:5px;">
 
 <h4
     class="actionTitle"
-    id="actionRequiredTitle">
+    id="actionRequiredTitle"
+    style="cursor:pointer;"
+    onclick="toggleSection('actionRequiredTitle','pendingList')">
 
-    🚨 ACTION REQUIRED 
+    ▶ 🚨 ACTION REQUIRED (0)
 
 </h4>
-<div id="pendingList"></div>
+
+<div id="pendingList" style="display:none;"></div>
+</div>
 
 <hr>
 
 <h4
     id="cancelledTitle"
-    style="cursor:pointer;">
+    style="cursor:pointer;"
+    onclick="toggleSection('cancelledTitle','cancelledList')">
 
     ▶ CANCELLED (0)
 
@@ -870,6 +876,13 @@ margin-top:5px;">
 
 
 <br><br>
+<div style="
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-bottom:10px;
+">
+
 <input
     type="text"
     id="searchDN"
@@ -878,8 +891,14 @@ margin-top:5px;">
     style="
         padding:8px;
         width:250px;
-        margin-bottom:10px;
     ">
+
+<button onclick="exportScanReport()">
+    📥 DOWNLOAD REPORT
+</button>
+
+</div>
+
 <table id="dnSummary">
 
 <thead>
@@ -888,6 +907,7 @@ margin-top:5px;">
     <th>Customer</th>
     <th>Total Box</th>
     <th>Error</th>
+    <th>Plan Date</th>
     <th>Last Scan Date</th>
 </tr>
 </thead>
@@ -1003,6 +1023,7 @@ let plannedDelivery = [];
 
 let currentUser = "";
 let currentShift = "";
+let isSaving = false;
 async function loginUser(){
 
     let name =
@@ -1128,6 +1149,15 @@ function changeType(){
 
 async function saveData(){
 
+
+    if(isSaving){
+        return;
+    }
+
+    isSaving = true;
+
+    try{
+
     let type =
     document.getElementById("scanType").value;
 
@@ -1139,6 +1169,17 @@ document.getElementById("dn")
 .value
 .trim()
 .replace(/^0+/, "");
+
+    if(customer === ""){
+    alert("Please Select Customer");
+    return;
+}
+
+if(dn === ""){
+    alert("Please Enter DN");
+    return;
+}
+
 
     let today =
     new Date().toLocaleDateString('en-GB');
@@ -1267,7 +1308,18 @@ document.getElementById("dn")
         result.innerHTML = resultText;
         result.className = resultClass;
 
+const planInfo =
+plannedDelivery.find(
+    x =>
+    String(x.dn)
+    .trim()
+    .replace(/^0+/,"") ===
+    String(dn)
+    .trim()
+    .replace(/^0+/,"")
+);
 const docRef = await addDoc(
+    
     collection(db, "scanHistory"),
     {
 
@@ -1279,6 +1331,7 @@ const docRef = await addDoc(
         ibox: ibox,
         cp: cp,
         result: resultText,
+        planDate: planInfo?.planDate || "",
         createdAt: new Date().toLocaleString('en-GB')
     }
 );
@@ -1486,6 +1539,17 @@ row.setAttribute(
         result.innerHTML = resultText;
         result.className = resultClass;
 
+const planInfo =
+plannedDelivery.find(
+    x =>
+    String(x.dn)
+    .trim()
+    .replace(/^0+/,"") ===
+    String(dn)
+    .trim()
+    .replace(/^0+/,"")
+);
+
 const docRef = await addDoc(
     collection(db, "scanHistory"),
     {
@@ -1499,6 +1563,7 @@ const docRef = await addDoc(
         iboxcp: iboxcp,
         cp: cp,
         result: resultText,
+        planDate: planInfo?.planDate || "",
         createdAt: new Date().toLocaleString('en-GB')
     }
 );
@@ -1519,6 +1584,14 @@ row.setAttribute(
     }
 
 }
+finally{
+
+    isSaving = false;
+
+}
+
+}
+
 function parseScanDate(dateStr){
 
     if(!dateStr) return null;
@@ -1552,6 +1625,13 @@ function parseScanDate(dateStr){
 
 
 function buildDNSummary() {
+
+
+            let fromDate =
+        document.getElementById("fromDate")?.value;
+
+        let toDate =
+        document.getElementById("toDate")?.value;
 
     const tbody =
     document.querySelector("#dnSummary tbody");
@@ -1593,56 +1673,33 @@ function buildDNSummary() {
         let date =
         row.cells[0].innerText.split(",")[0];
 
-        let fromDate =
-        document.getElementById("fromDate")?.value;
-
-        let toDate =
-        document.getElementById("toDate")?.value;
-
         let rowDate =
         parseScanDate(row.cells[0].innerText);
 
-        if(fromDate){
-
-    let p = fromDate.split("-");
-
-    let from = new Date(
-        parseInt(p[0]),
-        parseInt(p[1]) - 1,
-        parseInt(p[2])
-    );
-
-    if(rowDate < from){
-        return;
-    }
-
-}
-    
-      if(toDate){
-
-    let p = toDate.split("-");
-
-    let to = new Date(
-        parseInt(p[0]),
-        parseInt(p[1]) - 1,
-        parseInt(p[2]),
-        23,59,59,999
-    );
-
-    if(rowDate > to){
-        return;
-    }
-
-}
     
 if(!dnMap[dn]){
+
+let planInfo =
+plannedDelivery.find(
+    x =>
+    String(x.dn)
+    .trim()
+    .replace(/^0+/,"") ===
+    String(dn)
+    .trim()
+    .replace(/^0+/,"")
+);
 
     dnMap[dn] = {
         customer: customer,
         total: 0,
         error: 0,
         date: date,
-        latestDate: rowDate
+        latestDate: rowDate,
+        planDate:
+            planInfo
+            ? planInfo.planDate
+            : ""
     };
 
 }
@@ -1671,9 +1728,37 @@ else{
 
     });
 
+let filteredDNs =
+
 Object.keys(dnMap)
 
-.sort((a,b) =>
+.filter(dn => {
+
+    let planDate =
+    dnMap[dn].planDate || "";
+
+    if(fromDate && planDate){
+
+        if(planDate < fromDate){
+            return false;
+        }
+
+    }
+
+    if(toDate && planDate){
+
+        if(planDate > toDate){
+            return false;
+        }
+
+    }
+
+    return true;
+
+});
+filteredDNs
+
+.sort((a,b)=>
     dnMap[b].latestDate -
     dnMap[a].latestDate
 )
@@ -1732,13 +1817,27 @@ else{
     "#F8FFF8";
 
 }
-        row.insertCell(4).innerHTML =
-        dnMap[dn].date;
+row.insertCell(4).innerHTML =
+dnMap[dn].planDate || "-";
+
+row.insertCell(5).innerHTML =
+dnMap[dn].date;
 
     });
 
-    let totalDN =
-Object.keys(dnMap).length;
+let totalDN =
+filteredDNs.length;
+
+totalBox = 0;
+totalError = 0;
+
+filteredDNs.forEach(dn => {
+
+    totalBox += dnMap[dn].total;
+
+    totalError += dnMap[dn].error;
+
+});
 
 let accuracy =
 totalBox === 0
@@ -1927,6 +2026,7 @@ async function deleteLast(){
 );
         await deleteDoc(
             doc(db,"scanHistory",docId)
+            
         );
 
     }
@@ -2193,6 +2293,13 @@ function showHistory(){
 
     document.getElementById("dnDetailBox")
     .style.display = "none";
+
+    document.getElementById("vipTableBox")
+    .style.display = "none";
+
+    document.getElementById("aliTableBox")
+    .style.display = "none";
+
 
     buildDNSummary();
 
@@ -2508,6 +2615,196 @@ function exportSelectedDN(){
 
 }
 
+function exportScanReport(){
+
+    let fromDate =
+    document.getElementById("fromDate").value;
+
+    let toDate =
+    document.getElementById("toDate").value;
+
+    if(!fromDate || !toDate){
+        alert("Please select From Date & To Date");
+        return;
+    }
+
+    let workbook =
+    XLSX.utils.book_new();
+
+    // =====================
+    // VIP DATA
+    // =====================
+
+    let vipData = [];
+
+    let allowedDN = [];
+
+document
+.querySelectorAll(
+    "#dnSummary tbody tr"
+)
+.forEach(row => {
+
+    allowedDN.push(
+        row.cells[0].innerText.trim()
+    );
+
+});
+
+    document
+    .querySelectorAll("#vipHistory tbody tr")
+    .forEach(row => {
+
+
+let dn =
+row.cells[3].innerText.trim();
+
+if(
+    allowedDN.includes(dn)
+){
+    vipData.push({
+                        Date: row.cells[0].innerText,
+                User: row.cells[1].innerText,
+                Customer: row.cells[2].innerText,
+                DN: row.cells[3].innerText,
+                IBOX: row.cells[4].innerText,
+                CP_LABEL: row.cells[5].innerText,
+                Result: row.cells[6].innerText
+            });
+        }
+
+    });
+
+    let vipSheet =
+    XLSX.utils.json_to_sheet(
+        vipData
+    );
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        vipSheet,
+        "BYTEDANCE_AMAZON"
+    );
+
+    // =====================
+    // ALIBABA DATA
+    // =====================
+
+    let aliData = [];
+
+    document
+    .querySelectorAll("#aliHistory tbody tr")
+    .forEach(row => {
+
+
+let dn =
+row.cells[3].innerText.trim();
+
+if(
+    allowedDN.includes(dn)
+){
+    aliData.push({
+                        Date: row.cells[0].innerText,
+                User: row.cells[1].innerText,
+                Customer: row.cells[2].innerText,
+                DN: row.cells[3].innerText,
+                IBOX: row.cells[4].innerText,
+                IBOX_CP: row.cells[5].innerText,
+                CP: row.cells[6].innerText,
+                Result: row.cells[7].innerText
+            });
+        }
+
+    });
+
+    let aliSheet =
+    XLSX.utils.json_to_sheet(
+        aliData
+    );
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        aliSheet,
+        "ALIBABA_GOOGLE"
+    );
+
+    // =====================
+    // DN SUMMARY
+    // =====================
+
+    let dnSummaryData = [];
+
+    document
+    .querySelectorAll("#dnSummary tbody tr")
+    .forEach(row => {
+
+dnSummaryData.push({
+    DN: row.cells[0].innerText,
+    Customer: row.cells[1].innerText,
+    Total_Box: row.cells[2].innerText,
+    Error: row.cells[3].innerText,
+    Plan_Date: row.cells[4].innerText,
+    Last_Scan_Date: row.cells[5].innerText
+});
+
+    });
+
+    let summarySheet =
+    XLSX.utils.json_to_sheet(
+        dnSummaryData
+    );
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        summarySheet,
+        "DN_SUMMARY"
+    );
+
+    let reportSummary = [
+{
+    Total_DN:
+    document.getElementById("totalDN")
+    .innerText,
+
+    Total_Box:
+    document.getElementById("totalBox")
+    .innerText,
+
+    Total_Error:
+    document.getElementById("totalError")
+    .innerText,
+
+    Accuracy:
+    document.getElementById("accuracy")
+    .innerText,
+
+    From_Date:
+    fromDate,
+
+    To_Date:
+    toDate
+}
+];
+
+let summaryKPI =
+XLSX.utils.json_to_sheet(
+    reportSummary
+);
+
+XLSX.utils.book_append_sheet(
+    workbook,
+    summaryKPI,
+    "REPORT_SUMMARY"
+);
+
+
+    XLSX.writeFile(
+        workbook,
+        `Overpack_Report_${fromDate}_to_${toDate}.xlsx`
+    );
+
+}
+
 function saveToLocalStorage(){
 
     let data = {
@@ -2533,28 +2830,6 @@ function saveToLocalStorage(){
 
 }
 
-function loadFromLocalStorage(){
-
-    let data =
-    localStorage.getItem("OverpackScanData");
-
-    if(!data) return;
-
-    data = JSON.parse(data);
-
-    document.querySelector("#vipTable tbody").innerHTML =
-    data.vipCurrent || "";
-
-    document.querySelector("#aliTable tbody").innerHTML =
-    data.aliCurrent || "";
-
-    document.querySelector("#vipHistory tbody").innerHTML =
-    data.vipHistory || "";
-
-    document.querySelector("#aliHistory tbody").innerHTML =
-    data.aliHistory || "";
-
-}
 
 function clearHistory(){
 
@@ -3059,9 +3334,6 @@ window.setDoc = setDoc;
 
 
 
-console.log("Firebase Connected");
-
-
 
 function uploadPlan(event){
 
@@ -3132,10 +3404,6 @@ rows.forEach(row => {
 
 let excelDate =
 row["Transptn Plang Date"];
-console.log(
-    "DATE:",
-    row["Transptn Plang Date"]
-);
 
 let jsDate =
 new Date(
@@ -3221,7 +3489,6 @@ window.setDoc(
 
 });
 
-console.log(plannedDelivery);
 
 alert(
     plannedDelivery.length +
@@ -3251,9 +3518,14 @@ document.getElementById(
     "cancelledList"
 );
 
+let todayDate = new Date();
+
 let today =
-new Date().toISOString().split("T")[0];
-    pendingList.innerHTML = "";
+todayDate.getFullYear() + "-" +
+String(todayDate.getMonth()+1).padStart(2,"0") + "-" +
+String(todayDate.getDate()).padStart(2,"0");
+
+pendingList.innerHTML = "";
     completedList.innerHTML = "";
     cancelledList.innerHTML = "";
 
@@ -3263,6 +3535,9 @@ new Date().toISOString().split("T")[0];
         new Date(b.planDate)
     )
 .forEach(item => {
+    if(item.planDate < today){
+    return;
+}
 
     let planDate =
     new Date(item.planDate);
@@ -3322,7 +3597,7 @@ if(item.status === "CANCELLED"){
 
 if(item.status === "COMPLETE"){
 
-    if(item.planDate >= today){
+    if(item.planDate === today){
 
         completedList.innerHTML += `
 
@@ -3381,17 +3656,23 @@ pendingList.innerHTML += html;
 
 let pendingCount =
 plannedDelivery.filter(
-    x => x.status === "PENDING"
+    x =>
+        x.status === "PENDING" &&
+        x.planDate >= today
 ).length;
 
 let completedCount =
 plannedDelivery.filter(
-    x => x.status === "COMPLETE"
+    x =>
+        x.status === "COMPLETE" &&
+        x.planDate === today
 ).length;
 
 let cancelledCount =
 plannedDelivery.filter(
-    x => x.status === "CANCELLED"
+    x =>
+        x.status === "CANCELLED" &&
+        x.planDate >= today
 ).length;
 
 if(completedCount === 0){
@@ -3438,23 +3719,42 @@ else{
 
 }
 
+const pendingOpen =
+document.getElementById(
+    "actionRequiredTitle"
+).dataset.open === "1";
+
 document.getElementById(
     "actionRequiredTitle"
 ).innerHTML =
+(pendingOpen ? "▼ " : "▶ ") +
 "🚨 ACTION REQUIRED (" +
 pendingCount +
 ")";
 
+const completedOpen =
+document.getElementById(
+    "completedTitle"
+).dataset.open === "1";
+
 document.getElementById(
     "completedTitle"
 ).innerHTML =
-"▶ COMPLETED (" +
+(completedOpen ? "▼ " : "▶ ") +
+"COMPLETED (" +
 completedCount +
 ")";
+
+const cancelledOpen =
+document.getElementById(
+    "cancelledTitle"
+).dataset.open === "1";
+
 document.getElementById(
     "cancelledTitle"
 ).innerHTML =
-"▶ CANCELLED (" +
+(cancelledOpen ? "▼ " : "▶ ") +
+"CANCELLED (" +
 cancelledCount +
 ")";
 
@@ -3467,46 +3767,30 @@ document
     uploadPlan
 );
 
-document
-.getElementById("completedTitle")
-.onclick = function(){
 
-    let box =
-    document.getElementById(
-        "completedList"
+window.toggleSection = function(titleId, contentId){
+
+    const title =
+    document.getElementById(titleId);
+
+    const content =
+    document.getElementById(contentId);
+
+    const isHidden =
+    content.style.display === "none";
+
+    content.style.display =
+    isHidden ? "block" : "none";
+
+    title.dataset.open =
+    isHidden ? "1" : "0";
+
+    title.innerHTML =
+    title.innerHTML.replace(
+        isHidden ? "▶" : "▼",
+        isHidden ? "▼" : "▶"
     );
-
-    if(box.style.display === "none"){
-
-        box.style.display = "block";
-
-    }else{
-
-        box.style.display = "none";
-
-    }
-
-};
-document
-.getElementById("cancelledTitle")
-.onclick = function(){
-
-    let box =
-    document.getElementById(
-        "cancelledList"
-    );
-
-    if(box.style.display === "none"){
-
-        box.style.display = "block";
-
-    }else{
-
-        box.style.display = "none";
-
-    }
-
-};
+}
 
 window.loadPlannedDelivery = async function(){
 
